@@ -25,8 +25,42 @@ app.get("/api/hello", function (req, res) {
 });
 
 
-
 // listen for requests :)
 var listener = app.listen(process.env.PORT, function () {
   console.log('Your app is listening on port ' + listener.address().port);
+});
+
+
+app.get("/api/:fecha?", (req, res, next) => {
+  let { fecha } = req.params;
+  let date;
+
+  if ( /\d{13}/.test(fecha) ) {
+    fecha = parseInt(fecha);
+  };
+
+  if (fecha) {
+    // Objeto con la fecha pasada como parametro
+    date = new Date(fecha);
+  } else {
+    // Objeto con la fecha actual
+    date = new Date();
+  };
+
+  // Unix
+  req.unix = date.getTime();
+
+  // Fecha en formato UTC
+  req.utc = date.toUTCString();
+
+  next();
+
+}, (req, res) => {
+
+  if (isNaN(req.unix)) {
+    res.json({ error: req.utc });
+    return;
+  };
+
+  res.json({ unix: req.unix, utc: req.utc });
 });
